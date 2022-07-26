@@ -177,6 +177,23 @@ M.parse_value = function(schema, value)
     return false
   elseif value == "" then
     return true, nil
+  elseif schema.type == "table" then
+    local key_value_pairs = vim.split(value, "%s*" .. schema.delimiter .. "%s*")
+    local result = {}
+    local success_key, success_value, key, key_value
+    for _, key_value_pair in ipairs(key_value_pairs) do
+      key_value_pair = vim.split(key_value_pair, "%s*" .. schema.key_value_delimiter .. "%s*")
+      if #key_value_pair ~= 2 then
+        return false, nil
+      end
+      success_key, key = M.parse_value(schema.key_subtype, key_value_pair[1])
+      success_value, key_value = M.parse_value(schema.value_subtype, key_value_pair[2])
+      if not success_key or not success_value or not key or not key_value then
+        return false, nil
+      end
+      result[key] = key_value
+    end
+    return true, result
   elseif schema.type == "list" then
     local values = vim.split(value, "%s*" .. schema.delimiter .. "%s*")
     local success
@@ -214,8 +231,11 @@ M.parse_value = function(schema, value)
     elseif string.match(value, "^no?") or string.match(value, "^fa?l?s?e?") then
       return true, false
     end
+  elseif schema.type == "string" then
+    return true, value
   end
-  return true, value
+
+  return false, nil
 end
 
 ---@param findstart number
