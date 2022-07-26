@@ -4,7 +4,7 @@ local log = require("overseer.log")
 local util = require("overseer.util")
 local M = {}
 
----@alias overseer.Param overseer.StringParam|overseer.BoolParam|overseer.NumberParam|overseer.IntParam|overseer.ListParam|overseer.EnumParam|overseer.OpaqueParam
+---@alias overseer.Param overseer.StringParam|overseer.BoolParam|overseer.NumberParam|overseer.IntParam|overseer.ListParam|overseer.EnumParam|overseer.OpaqueParam|overseer.TableParam
 
 ---@class overseer.BaseParam
 ---@field name? string
@@ -43,6 +43,14 @@ local M = {}
 ---@class overseer.OpaqueParam : overseer.BaseParam
 ---@field type? "opaque"
 ---@field default? any
+
+---@class overseer.TableParam : overseer.BaseParam
+---@field type? "table"
+---@field key_subtype? overseer.Param
+---@field value_subtype? overseer.Param
+---@field delimiter? string
+---@field key_value_delimiter? string
+---@field default? table
 
 local default_schema = {
   list = {
