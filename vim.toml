@@ -5,3 +5,11 @@ name = "vim"
 [vim]
 any = true
 
+[describe]
+any = true
+
+[it]
+any = true
+
+[assert]
+any = true
