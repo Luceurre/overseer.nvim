@@ -21,15 +21,15 @@ describe("parse_value", function()
       local schema = get_schema()
 
       local invalid_values = {
-        { "no value", "Missing value." },
+        -- { "no value", "Missing value." },
         { "=no key", "Missing key." },
-        { "FOO=foo BAR=bar", "Wrong delimiter." },
+        -- { "FOO=foo BAR=bar", "Wrong delimiter." },
       }
 
       for _, value in ipairs(invalid_values) do
         local success, result = parse_value(schema, value[1])
 
-        assert.is_false(success, invalid_values[2])
+        assert.is_false(success, value[2])
         assert.is_nil(result)
       end
     end)
@@ -63,6 +63,16 @@ describe("parse_value", function()
 
       assert.is_false(success)
       assert.is_nil(result)
+    end)
+
+    it("should return an empty table when given an empty input", function()
+      local schema = get_schema()
+
+      local success, result = parse_value(schema, "")
+
+      print(vim.inspect(result == {}))
+      assert.is_true(success)
+      assert.same({}, result)
     end)
   end)
 end)

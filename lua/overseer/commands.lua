@@ -8,6 +8,7 @@ local template = require("overseer.template")
 local Task = require("overseer.task")
 local task_editor = require("overseer.task_editor")
 local window = require("overseer.window")
+local param = require('overseer.param')
 
 local M = {}
 
@@ -134,6 +135,8 @@ M.run_template = function(opts, callback)
       end
       return
     end
+    tmpl.params = param.convert_tables_to_params(tmpl.params)
+
     template.build(tmpl, opts, function(task)
       if task then
         if opts.autostart then

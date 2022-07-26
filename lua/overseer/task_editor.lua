@@ -397,6 +397,7 @@ function Editor:parse()
   local last_idx = 0
   for _, line in ipairs(buflines) do
     local prefix, name, text = line:match("^(%s*)([^%s]+): ?(.*)$")
+    -- Component param
     if name and comp and prefix == "  " then
       local param_schema = comp.params[name]
       if param_schema then
@@ -405,6 +406,7 @@ function Editor:parse()
           comp_map[comp.name][name] = value
         end
       end
+    -- Task param
     elseif name and prefix == "" then
       local param_schema = Task.params[name]
       if param_schema then

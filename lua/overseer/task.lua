@@ -1,3 +1,4 @@
+local param = require("overseer.param")
 local component = require("overseer.component")
 local constants = require("overseer.constants")
 local form = require("overseer.form")
@@ -29,14 +30,12 @@ local next_id = 1
 
 Task.ordered_params = { "cmd", "cwd" }
 ---@type overseer.Params
-Task.params = {
+Task.params = param.convert_tables_to_params({
   -- It's kind of a hack to specify a delimiter without type = 'list'. This is
   -- so the task editor displays nicely if the value is a list OR a string
-  cmd = { delimiter = " " },
-  cwd = {
-    optional = true,
-  },
-}
+  cmd = { type = "list", delimiter = " ", subtype = { type = "string" } },
+  cwd = { type = "string", optional = true },
+})
 
 ---@class overseer.TaskDefinition
 ---@field cmd string|string[]

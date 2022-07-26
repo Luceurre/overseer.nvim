@@ -4,54 +4,6 @@ local log = require("overseer.log")
 local util = require("overseer.util")
 local M = {}
 
----@alias overseer.Param overseer.StringParam|overseer.BoolParam|overseer.NumberParam|overseer.IntParam|overseer.ListParam|overseer.EnumParam|overseer.OpaqueParam|overseer.TableParam
-
----@class overseer.BaseParam
----@field name? string
----@field desc? string
----@field long_desc? string
----@field validate? fun(value: any): boolean
----@field optional? boolean
-
----@class overseer.StringParam : overseer.BaseParam
----@field type? "string"
----@field default? string
-
----@class overseer.BoolParam : overseer.BaseParam
----@field type "boolean"
----@field default? boolean
-
----@class overseer.NumberParam : overseer.BaseParam
----@field type "number"
----@field default? number
-
----@class overseer.IntParam : overseer.BaseParam
----@field type? "integer"
----@field default? number
-
----@class overseer.ListParam : overseer.BaseParam
----@field type? "list"
----@field subtype? overseer.Param
----@field delimiter? string
----@field default? table
-
----@class overseer.EnumParam : overseer.BaseParam
----@field type? "enum"
----@field default? string
----@field choices string[]
-
----@class overseer.OpaqueParam : overseer.BaseParam
----@field type? "opaque"
----@field default? any
-
----@class overseer.TableParam : overseer.BaseParam
----@field type? "table"
----@field key_subtype? overseer.Param
----@field value_subtype? overseer.Param
----@field delimiter? string
----@field key_value_delimiter? string
----@field default? table
-
 local default_schema = {
   list = {
     delimiter = ", ",
@@ -86,65 +38,20 @@ M.validate_params = function(params)
 end
 
 ---@param schema overseer.Param
----@value any
----@return string
-M.render_value = function(schema, value)
-  if value == nil then
-    return ""
-  end
-  if schema.type == "opaque" then
-    return "<opaque>"
-  elseif type(value) == "table" then
-    local rendered_values = {}
-    for _, v in ipairs(value) do
-      table.insert(rendered_values, M.render_value(schema.subtype or {}, v))
-    end
-    return table.concat(rendered_values, schema.delimiter or ", ")
-  end
-  return value
-end
-
----@param schema overseer.Param
 ---@param prefix string
 ---@param name string
 ---@param value any
 ---@return string
 M.render_field = function(schema, prefix, name, value)
-  local str_value = M.render_value(schema, value)
+  local str_value = schema.render_value(value)
   return string.format("%s%s: %s", prefix, name, str_value)
 end
 
 ---@param schema overseer.Param
 ---@param value any
 ---@return boolean
-local function validate_type(schema, value)
-  local ptype = schema.type or "string"
-  if value == nil then
-    return schema.optional
-  elseif ptype == "opaque" then
-    return true
-  elseif ptype == "enum" then
-    return vim.tbl_contains(schema.choices, value)
-  elseif ptype == "list" then
-    return type(value) == "table" and vim.tbl_islist(value)
-  elseif ptype == "number" then
-    return type(value) == "number"
-  elseif ptype == "integer" then
-    return type(value) == "number" and math.floor(value) == value
-  elseif ptype == "boolean" then
-    return type(value) == "boolean"
-  elseif ptype == "string" then
-    return true
-  else
-    log:warn("Unknown param type '%s'", ptype)
-  end
-end
-
----@param schema overseer.Param
----@param value any
----@return boolean
 M.validate_field = function(schema, value)
-  if not validate_type(schema, value) then
+  if schema.validate_type(value) then
     return false
   end
   if schema.validate and value ~= nil then
@@ -175,9 +82,10 @@ end
 M.parse_value = function(schema, value)
   if schema.type == "opaque" then
     return false
-  elseif value == "" then
-    return true, nil
   elseif schema.type == "table" then
+    if value == "" then
+      return true, {}
+    end
     local key_value_pairs = vim.split(value, "%s*" .. schema.delimiter .. "%s*")
     local result = {}
     local success_key, success_value, key, key_value
@@ -231,6 +139,8 @@ M.parse_value = function(schema, value)
     elseif string.match(value, "^no?") or string.match(value, "^fa?l?s?e?") then
       return true, false
     end
+  elseif value == "" then
+    return true, nil
   elseif schema.type == "string" then
     return true, value
   end

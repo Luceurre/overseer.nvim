@@ -38,6 +38,10 @@ function TerminalStrategy:start(task)
         task:dispatch("on_output_lines", lines)
       end
     end
+    -- termopen is annoying it doesn't support empty table for env
+    -- if task.env and vim.tbl_isempty(task.env) then
+    --   task.env = nil
+    -- end
     chan_id = vim.fn.termopen(task.cmd, {
       cwd = task.cwd,
       env = task.env,

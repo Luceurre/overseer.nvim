@@ -209,7 +209,8 @@ function Builder:render()
   local highlights = { { "OverseerTask", 1, 0, -1 } }
   for _, name in ipairs(self.schema_keys) do
     local prefix = self.schema[name].optional and "" or "*"
-    table.insert(lines, form.render_field(self.schema[name], prefix, name, self.params[name]))
+    local field = self.schema[name]:render_field(prefix, name, self.params[name])
+    table.insert(lines, field)
   end
   if self.cur_line and vim.api.nvim_get_mode().mode == "i" then
     local lnum, line = unpack(self.cur_line)
@@ -289,7 +290,7 @@ function Builder:parse()
   for _, line in ipairs(buflines) do
     local name, text = parse_line(line)
     if name and self.schema[name] then
-      local parsed, value = form.parse_value(self.schema[name], text)
+      local parsed, value = self.schema[name]:parse_value(text)
       if parsed then
         self.params[name] = value
       end
